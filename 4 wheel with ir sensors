@@ -1,0 +1,232 @@
+const int in1 = 6;
+const int in2 = 7;
+
+const int in3 = 5;
+const int in4 = 4;
+const int enA = 10;
+const int enB = 9;
+
+const int trig=2;
+const int echo=1;
+
+const int max_dist=80;
+const int min_dist_back=12;
+#include <Servo.h> 
+Servo servoLook;
+
+int M1_Speed = 87;         // speed of motor 1
+int M2_Speed =87;           // speed of motor 2
+int LeftRotationSpeed =100;   // Left Rotation Speed
+int RightRotationSpeed = 100;  // Right Rotation Speed
+// const int a=0;
+int getDistance()                                   //Measure the distance to an object
+{
+  unsigned long pulseTime;                          //Create a variable to store the pulse travel time
+  int distance;                                     //Create a variable to store the calculated distance
+  digitalWrite(trig, HIGH);                         //Generate a 10 microsecond pulse
+  delayMicroseconds(10);
+  digitalWrite(trig, LOW);
+  pulseTime = pulseIn(echo, HIGH);         //Measure the time for the pulse to return
+  distance  = pulseTime / 29 / 2;         //Calculate the object distance based on the pulse time
+  Serial.println(distance);
+  return distance;
+}
+int checkDirection()                                            //Check the left and right directions and decide which way to turn
+{
+  int distances [3] = {0,0,0};                                    //Left ,right and Front distances
+  int turnDir;                                               //Direction to turn, 0 left, 1 turn around, 2 right, 3 forward
+  servoLook.write(180);                                         //Turn servo to look left
+  delay(500);
+  distances [0] = getDistance();                                //Get the left object distance
+
+  servoLook.write(90);                                         //Turn servo to look left
+  delay(500);
+  distances [3] = getDistance();
+  servoLook.write(0);                                           //Turn servo to look right
+  delay(1000);
+  distances [1] = getDistance();                                //Get the right object distance
+  if (distances[0]<=25 && distances[1]<=25)                   //If both directions are blocked, move forward
+    turnDir = 3;                                             
+  else if (distances[0]>=distances[1])                          //If left has more space, turn left
+    turnDir = 0;  //left
+  else if (distances[0]<distances[1])                           //If right has more space, turn right
+    turnDir = 2;  //right
+   //else if (distances[0]<=50 && distances[1]<=50 && distances[3]<=50)    //If All directions are blocked, turn around
+    //turnDir = 1;  
+  return turnDir;
+}
+int checkDist(){
+  for (int pos=0;pos<180;pos++){
+    servoLook.write(pos);
+    int dist=getDistance();
+
+  }
+}
+void setup() {
+  Serial.begin(9600);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+
+  pinMode(enA, OUTPUT);
+  pinMode(enB, OUTPUT);
+
+  analogWrite(enA, M1_Speed);
+  analogWrite(enB, M2_Speed);
+  servoLook.attach(3);
+    pinMode(trig, OUTPUT);
+  
+  //Set the Echo pins as input pins
+  pinMode(echo, INPUT);
+  // pinMode(A0, INPUT);  // initialize Left sensor as an input
+  // pinMode(A1, INPUT);  // initialize Right sensor as an input
+}
+
+void loop() {
+
+  // servoLook.write(90);
+  // delay(750);
+  // int distance = getDistance();
+  // if (distance >= min_dist_back) {
+    
+  //   forward();
+   
+  //   Serial.println("forward");
+  // } 
+  //  while(distance >= min_dist_back)
+  //  {
+  //   distance = getDistance();
+  //   delay(50);
+  //  }
+  //  Stop(); 
+  //  int turnDir = checkDirection();
+  //  Serial.println(turnDir);
+  //  switch(turnDir)
+  //  {
+  //   case 0:                                       //Turn left
+  //   Serial.println("Left");
+  //     left();
+  //     delay(425);
+  //     Stop();
+  //     break;
+    
+  //   case 2:                                       //Turn right
+  //   Serial.println("Right");
+  //     right();
+  //     delay(415);
+  //     Stop();
+  //     break;
+      
+  //   case 3:                                       //move forward
+  //   Serial.println("Forward");
+  //    forward();
+  //     break;
+  //   }
+  int LEFT_SENSOR = digitalRead(11);
+  int RIGHT_SENSOR = digitalRead(12);
+
+  if (RIGHT_SENSOR == 0 && LEFT_SENSOR == 0) {
+    forward();  //FORWARD
+  }
+
+  else if (RIGHT_SENSOR == 0 && LEFT_SENSOR == 1) {
+    right();  //Move Right
+  }
+
+  else if (RIGHT_SENSOR == 1 && LEFT_SENSOR == 0) {
+    left();  //Move Left
+  }
+
+  else if (RIGHT_SENSOR == 1 && LEFT_SENSOR == 1) {
+    Stop();  //STOP
+  }
+  // printl();
+  // forward();
+  // // Serial.println("forward");
+  // delay(2000);
+  // right();
+  //   delay(700);
+  // // // // Serial.println("right");
+  //   forward();
+  // // Serial.println("forward");
+  // delay(2000);
+  // left();
+  // // // Serial.println("left");
+  // // //   printl();
+  // delay(700);
+
+  // backward();
+  // delay(2000);
+
+  // // printl();
+  // Stop();
+  // delay(1000);
+
+
+
+  // analogWrite(enA, LeftRotationSpeed);
+  // analogWrite(enB, RightRotationSpeed);
+}
+
+
+
+
+
+void printl() {
+  Serial.println(digitalRead(in1));
+  Serial.println(digitalRead(in2));
+  Serial.println(digitalRead(in3));
+  Serial.println(digitalRead(in4));
+  Serial.println(analogRead(enA));
+  Serial.println(analogRead(enB));
+
+  Serial.println(M2_Speed);
+  Serial.println(M1_Speed);
+}
+void forward() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+
+  analogWrite(enA, M1_Speed);
+  analogWrite(enB, M2_Speed);
+}
+void backward() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+
+  analogWrite(enA, M1_Speed);
+  analogWrite(enB, M2_Speed);
+}
+
+
+void right() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+  digitalWrite(in3, HIGH);
+  digitalWrite(in4, LOW);
+
+  analogWrite(enA, LeftRotationSpeed);
+  analogWrite(enB, RightRotationSpeed);
+}
+
+void left() {
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, HIGH);
+
+  analogWrite(enA, LeftRotationSpeed);
+  analogWrite(enB, RightRotationSpeed);
+}
+
+void Stop() {
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+  digitalWrite(in3, LOW);
+  digitalWrite(in4, LOW);
+}
